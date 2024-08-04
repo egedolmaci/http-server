@@ -72,9 +72,9 @@ int main(int argc, char **argv) {
   } else if (msg.find("user-agent") != std::string::npos) {
     size_t start = msg.find("User-Agent");
     start += 12;
-    size_t end = msg.find('\\', start);
+    size_t end = msg.find('r', start);
     std::clog << start << "\n" << end << "\n";
-    std::string content_body = msg.substr(start, end - start - 1);
+    std::string content_body = msg.substr(start, end - start - 2);
     response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
 
   } else if (msg.find("/echo/") != std::string::npos) {
@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
   }
 
 
+  std::clog << msg << "\n";
   send(connect_fd, response.c_str(), response.size(), 0);
   close(connect_fd);
   close(server_fd);
