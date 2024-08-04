@@ -70,8 +70,9 @@ int main(int argc, char **argv) {
   if (msg[4] == '/' && msg[5] == ' ') {
     response = "HTTP/1.1 200 OK\r\n\r\n";
   } else if (msg.find("user-agent") != std::string::npos) {
-    size_t start = msg.find("User-Agent:");
-    size_t end = msg.find("\r", start);
+    size_t start = msg.find("User-Agent: ");
+    start += 12;
+    size_t end = msg.find("\r\n", start);
     std::clog << start << "\n" << end << "\n";
     std::string content_body = msg.substr(start, end - start - 1);
     response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
