@@ -71,7 +71,6 @@ int main(int argc, char **argv) {
     response = "HTTP/1.1 200 OK\r\n\r\n";
   } else if (msg.find("user-agent") != std::string::npos) {
     size_t start = msg.find("User-Agent");
-    start += 12;
     size_t end = msg.find('r', start);
     std::clog << start << "\n" << end << "\n";
     std::string content_body = msg.substr(start, end - start - 2);
