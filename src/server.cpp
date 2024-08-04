@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     start += 12;
     size_t end = msg.find("\r\n", start);
     std::clog << start << "\n" << end << "\n";
-    std::string content_body = msg.substr(start, end - start - 1);
+    std::string content_body = msg.substr(start, end - start);
     response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
 
   } else if (msg.find("/echo/") != std::string::npos) {
