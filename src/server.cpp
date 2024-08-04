@@ -57,7 +57,13 @@ int main(int argc, char **argv) {
   connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
   std::cout << "Client connected\n";
  
-  const char *msg = "HTTP/1.1 200 OK\r\n\r\n";
+  char buf[512];
+  if (recv(connect_fd, buf, sizeof buf, 0) < 0) {
+    std::cerr << "recieving failed\n";
+    return 1;
+  }
+
+  const char *msg = buf[5] == ' ' ? "HTTP/1.1 200 OK\r\n\r\n" : "HTTP/1.1 404 Not Found\r\n\r\n";
   send(connect_fd, msg, strlen(msg), 0);
   close(server_fd);
 
