@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     std::string content_body = msg.substr(start+1,end - start - 1);
     response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
   } else {
-    response = "HTTP/1.1 404 Not Found\r\n";
+    response = "HTTP/1.1 404 Not Found\r\n\r\n";
   }
 
   std::clog << response << "\n";
