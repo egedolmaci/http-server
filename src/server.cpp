@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
   std::cout << "Client connected\n";
  
   const char *msg = "HTTP/1.1 200 OK\r\n\r\n";
-  send(connect_fd, msg, sizeof msg, 0);
+  send(connect_fd, msg, strlen(msg), 0);
   close(server_fd);
 
   return 0;
