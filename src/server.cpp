@@ -63,8 +63,26 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  const char *msg = buf[5] == ' ' ? "HTTP/1.1 200 OK\r\n\r\n" : "HTTP/1.1 404 Not Found\r\n\r\n";
-  send(connect_fd, msg, strlen(msg), 0);
+  std::string response = ""; 
+  std::string msg(buf);
+  std::clog << msg << "\n";
+
+  if (msg[4] == '/' && msg[5] == ' ') {
+    response = "HTTP/1.1 200 OK\r\n\r\n";
+  } else if (msg.find("/echo/") != std::string::npos) {
+    size_t start = msg.find('/', 5);
+    size_t end = msg.find(' ', start);
+    std::clog << start << "\n" << end << "\n";
+    std::string content_body = msg.substr(start+1,end - start - 1);
+    response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
+  } else {
+    response = "HTTP/1.1 404 Not Found\r\n";
+  }
+
+  std::clog << response << "\n";
+
+  send(connect_fd, response.c_str(), response.size(), 0);
+  close(connect_fd);
   close(server_fd);
 
   return 0;
