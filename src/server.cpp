@@ -14,6 +14,8 @@
 
 std::mutex client_mutex;
 
+std::string dir;
+
 void *handle_client(void *connect_fd_ptr) {
     int connect_fd = *(int*)connect_fd_ptr;
     char buf[512];
@@ -86,7 +88,6 @@ int main(int argc, char **argv) {
     std::cerr << std::unitbuf;
   
 
-    std::string dir;
     if (argc == 3 && strcmp("--directory", argv[1])) {
             dir = argv[2];
     }
