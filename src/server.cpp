@@ -18,6 +18,7 @@ void *handle_client(void *connect_fd_ptr) {
   client_mutex.lock();
   std::clog << "mutex locked\n";
   int connect_fd = *(int*)connect_fd_ptr;
+  std::clog << "connect_fd_in_func: " << connect_fd << "\n";
   char buf[512];
 
   std::clog << "hello1\n";
