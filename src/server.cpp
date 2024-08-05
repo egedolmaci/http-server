@@ -41,7 +41,7 @@ void *handle_client(void *connect_fd_ptr) {
 
         // Construct the full path and open the file
         std::string full_path = "/tmp/" + file_to_retrieve;
-        std::clog << "Full path: " << full_path << "\n"
+        std::clog << "Full path: " << full_path << "\n";
         std::ifstream file(full_path, std::ios::binary | std::ios::ate);
         
         if (!file.is_open()) {
