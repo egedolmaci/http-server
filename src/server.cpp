@@ -52,6 +52,7 @@ void *handle_client(void *connect_fd_ptr) {
   client_mutex.unlock();
   send(connect_fd, response.c_str(), response.size(), 0);
   delete (int*)connect_fd_ptr;
+  return NULL;
 }
   
 
@@ -117,7 +118,6 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    std::clog << thread_id << "\n";
     pthread_detach(thread_id);
 
   }
