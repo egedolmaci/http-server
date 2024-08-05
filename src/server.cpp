@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
     pthread_t thread_id;
     int *connect_fd_ptr = new int;
     *connect_fd_ptr = connect_fd;
+    std::clog << "connect_fd: " << connect_fd << " " << *connect_fd_ptr << "\n";
     if (pthread_create(&thread_id, NULL, handle_client, (void*)connect_fd_ptr) < 0) {
       std::cerr << "Could not create thread\n";
       continue;
