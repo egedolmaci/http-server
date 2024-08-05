@@ -14,15 +14,22 @@
 
 std::mutex client_mutex;
 
-void *handle_client(void *connect_fd_ptr) {
-    int connect_fd = *(int*)connect_fd_ptr;
+typedef struct {
+    int connect_fd;
+    std::string dir;
+} thread_args;
+
+void *handle_client(void *args_ptr) {
+    thread_args *args = (thread_args *) args_ptr;
+    int connect_fd = args->connect_fd;
+    std::string dir = args->dir;
+
     char buf[512];
 
     // Receive data from the client
     if (recv(connect_fd, buf, sizeof(buf), 0) < 0) {
         std::cerr << "Receiving failed\n";
         close(connect_fd);
-        delete (int*)connect_fd_ptr;
         return nullptr;
     }
 
@@ -77,7 +84,6 @@ void *handle_client(void *connect_fd_ptr) {
 
     // Clean up
     close(connect_fd);
-    delete (int*)connect_fd_ptr;
     return nullptr;
 }
 
@@ -134,9 +140,8 @@ int main(int argc, char **argv) {
         }
 
         pthread_t thread_id;
-        int *connect_fd_ptr = new int;
-        *connect_fd_ptr = connect_fd;
-        if (pthread_create(&thread_id, NULL, handle_client, (void*)connect_fd_ptr) < 0) {
+        thread_args *args = new thread_args{connect_fd, dir};
+        if (pthread_create(&thread_id, NULL, handle_client, (void*)args) < 0) {
             std::cerr << "Could not create thread\n";
             continue;
         }
