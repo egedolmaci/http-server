@@ -15,9 +15,6 @@ std::mutex client_mutex;
 void *handle_client(void *connect_fd_ptr) {
 
 
-  pthread_t thread_id = pthread_self();
-  std::clog << thread_id <<  "\n";
-
   client_mutex.lock();
   int connect_fd = *(int*)connect_fd_ptr;
   char buf[512];
@@ -30,8 +27,8 @@ void *handle_client(void *connect_fd_ptr) {
   std::string response = ""; 
   std::string msg(buf);
 
-  // pthread_t thread_id = pthread_self();
-  // std::clog << thread_id << "\n" << msg << "\n";
+  pthread_t thread_id = pthread_self();
+  std::clog << thread_id << "\n" << msg << "\n";
   
   if (msg[4] == '/' && msg[5] == ' ') {
     response = "HTTP/1.1 200 OK\r\n\r\n";
@@ -54,7 +51,6 @@ void *handle_client(void *connect_fd_ptr) {
 
   client_mutex.unlock();
   send(connect_fd, response.c_str(), response.size(), 0);
-  close(connect_fd);
   delete (int*)connect_fd_ptr;
 }
   
@@ -128,5 +124,7 @@ int main(int argc, char **argv) {
 
   }
 
+  close(connect_fd);
+  close(server_fd);
   return 0;
 }
