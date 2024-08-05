@@ -23,13 +23,9 @@ void *handle_client(void *connect_fd_ptr) {
     std::cerr << "recieving failed\n";
   }
 
-  std::clog << "hello2\n";
-  
   std::string response = ""; 
   std::string msg(buf);
 
-  pthread_t thread_id = pthread_self();
-  std::clog << thread_id << "\n" << msg << "\n";
   
   if (msg[4] == '/' && msg[5] == ' ') {
     response = "HTTP/1.1 200 OK\r\n\r\n";
@@ -113,7 +109,6 @@ int main(int argc, char **argv) {
     pthread_t thread_id;
     int *connect_fd_ptr = new int;
     *connect_fd_ptr = connect_fd;
-    std::clog << "connect_fd: " << connect_fd << " " << *connect_fd_ptr << "\n";
     if (pthread_create(&thread_id, NULL, handle_client, (void*)connect_fd_ptr) < 0) {
       std::cerr << "Could not create thread\n";
       continue;
