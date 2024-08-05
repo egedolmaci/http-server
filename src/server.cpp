@@ -20,10 +20,12 @@ void *handle_client(void *connect_fd_ptr) {
   int connect_fd = *(int*)connect_fd_ptr;
   char buf[512];
 
+  std::clog << "hello1\n";
   if (recv(connect_fd, buf, sizeof buf, 0) < 0) {
     std::cerr << "recieving failed\n";
   }
 
+  std::clog << "hello2\n";
   
   std::string response = ""; 
   std::string msg(buf);
