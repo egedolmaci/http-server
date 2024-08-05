@@ -15,13 +15,10 @@ std::mutex client_mutex;
 void *handle_client(void *connect_fd_ptr) {
 
 
-  client_mutex.lock();
-  std::clog << "mutex locked\n";
+  std::clog << "mutex locked by: " << pthread_self() << "\n";
   int connect_fd = *(int*)connect_fd_ptr;
-  std::clog << "connect_fd_in_func: " << connect_fd << "\n";
   char buf[512];
 
-  std::clog << "hello1\n";
   if (recv(connect_fd, buf, sizeof buf, 0) < 0) {
     std::cerr << "recieving failed\n";
   }
@@ -53,7 +50,6 @@ void *handle_client(void *connect_fd_ptr) {
     response = "HTTP/1.1 404 Not Found\r\n\r\n";
   }
 
-  client_mutex.unlock();
   send(connect_fd, response.c_str(), response.size(), 0);
   delete (int*)connect_fd_ptr;
   return NULL;
