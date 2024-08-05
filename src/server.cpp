@@ -100,12 +100,10 @@ int main(int argc, char **argv) {
  
   std::cout << "Waiting for a client to connect...\n";
  
-  int connect_fd;
-  connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
-  std::cout << "Client connected\n";
  
   while (true) {
 
+    int connect_fd;
     if ((connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len)) < 0) {
       std::cerr << "Accept failed\n";
       continue;
