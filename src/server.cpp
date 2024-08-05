@@ -33,7 +33,7 @@ void *handle_client(void *args_ptr) {
         return nullptr;
     }
 
-    std::clog << pthread_self() << "\n"
+    std::clog << pthread_self() << "\n";
     std::string response;
     std::string msg(buf);
 
