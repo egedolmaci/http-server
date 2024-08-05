@@ -39,11 +39,11 @@ void *handle_client(void *connect_fd_ptr) {
     std::ifstream file_path(full_path, std::ios::binary | std::ios::ate);
     std::clog << full_path << "\n";
 
-    if (!file_path.good()) {
+    
+    long size = file_path.tellg();
+    if (size <= 0) {
       response = "HTTP/1.1 404 Not Found\r\n\r\n";
     } else {
-      long size = file_path.tellg();
-
       file_path.seekg(0, std::ios::beg);
       char* file_content;
       file_path.read(file_content, size);
