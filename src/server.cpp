@@ -12,19 +12,27 @@
 #include <mutex>
 #include <fstream>
 
+// Struct to hold thread arguments
+struct ThreadArgs {
+    int connect_fd;
+    std::string dir;
+};
+
 std::mutex client_mutex;
 
-std::string dir;
+void *handle_client(void *args_ptr) {
+    // Cast the argument to the correct type
+    ThreadArgs* args = static_cast<ThreadArgs*>(args_ptr);
+    int connect_fd = args->connect_fd;
+    std::string dir = args->dir;
+    delete args;  // Free the allocated memory for the struct
 
-void *handle_client(void *connect_fd_ptr) {
-    int connect_fd = *(int*)connect_fd_ptr;
     char buf[512];
 
     // Receive data from the client
     if (recv(connect_fd, buf, sizeof(buf), 0) < 0) {
         std::cerr << "Receiving failed\n";
         close(connect_fd);
-        delete (int*)connect_fd_ptr;
         return nullptr;
     }
 
@@ -42,7 +50,7 @@ void *handle_client(void *connect_fd_ptr) {
         std::clog << "File to retrieve: " << file_to_retrieve << "\n";
 
         // Construct the full path and open the file
-        std::string full_path = dir + file_to_retrieve;
+        std::string full_path = dir + "/" + file_to_retrieve;
         std::clog << "Full path: " << full_path << "\n";
         std::ifstream file(full_path, std::ios::binary | std::ios::ate);
         
@@ -79,7 +87,6 @@ void *handle_client(void *connect_fd_ptr) {
 
     // Clean up
     close(connect_fd);
-    delete (int*)connect_fd_ptr;
     return nullptr;
 }
 
@@ -87,9 +94,12 @@ int main(int argc, char **argv) {
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
   
-
+    std::string dir;
     if (argc == 3 && strcmp("--directory", argv[1]) == 0) {
-            dir = argv[2];
+        dir = argv[2];
+    } else {
+        std::cerr << "Usage: " << argv[0] << " --directory <path>\n";
+        return 1;
     }
 
     std::cout << "Logs from your program will appear here!\n";
@@ -135,10 +145,10 @@ int main(int argc, char **argv) {
         }
 
         pthread_t thread_id;
-        int *connect_fd_ptr = new int;
-        *connect_fd_ptr = connect_fd;
-        if (pthread_create(&thread_id, NULL, handle_client, (void*)connect_fd_ptr) < 0) {
+        ThreadArgs* args = new ThreadArgs{connect_fd, dir};
+        if (pthread_create(&thread_id, NULL, handle_client, static_cast<void*>(args)) < 0) {
             std::cerr << "Could not create thread\n";
+            delete args;  // Free the memory if thread creation fails
             continue;
         }
 
