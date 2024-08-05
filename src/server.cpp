@@ -23,40 +23,44 @@ void *handle_client(void *args_ptr) {
     thread_args *args = (thread_args *) args_ptr;
     int connect_fd = args->connect_fd;
     std::string dir = args->dir;
+    delete args;  // Free allocated memory for thread arguments
 
     char buf[512];
 
     // Receive data from the client
-    if (recv(connect_fd, buf, sizeof(buf), 0) < 0) {
+    ssize_t received = recv(connect_fd, buf, sizeof(buf), 0);
+    if (received <= 0) {
         std::cerr << "Receiving failed\n";
         close(connect_fd);
         return nullptr;
     }
 
-    std::clog << pthread_self() << "\n";
+    std::string msg(buf, received);
+
     std::string response;
-    std::string msg(buf);
 
     // Log the received message
-    std::clog << msg << "\n";
+    {
+        std::lock_guard<std::mutex> lock(client_mutex);
+        std::clog << pthread_self() << "\n";
+        std::clog << msg << "\n";
+    }
 
     if (msg.find("/files/") != std::string::npos) {
         // Extract file path from the request
         size_t start = msg.find("/files/") + 7; // Adjust to start after "/files/"
         size_t end = msg.find(' ', start);
         std::string file_to_retrieve = msg.substr(start, end - start);
-        std::clog << "File to retrieve: " << file_to_retrieve << "\n";
-
+        
         // Construct the full path and open the file
         std::string full_path = dir + file_to_retrieve;
-        std::clog << "Full path: " << full_path << "\n";
         std::ifstream file(full_path, std::ios::binary | std::ios::ate);
         
         if (!file.is_open()) {
             response = "HTTP/1.1 404 Not Found\r\n\r\n";
         } else {
             // Get file size
-            size_t size = file.tellg();
+            std::ifstream::pos_type size = file.tellg();
             file.seekg(0, std::ios::beg);
 
             // Read the file contents into a string
@@ -66,7 +70,7 @@ void *handle_client(void *args_ptr) {
             // Create the response
             response = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + std::to_string(size) + "\r\n\r\n" + file_content;
         }
-    } else if (msg.find("user-agent") != std::string::npos) {
+    } else if (msg.find("User-Agent: ") != std::string::npos) {
         size_t start = msg.find("User-Agent: ") + 12;
         size_t end = msg.find("\r\n", start);
         std::string content_body = msg.substr(start, end - start);
@@ -91,11 +95,10 @@ void *handle_client(void *args_ptr) {
 int main(int argc, char **argv) {
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
-  
 
     std::string dir;
     if (argc == 3 && strcmp("--directory", argv[1]) == 0) {
-            dir = argv[2];
+        dir = argv[2];
     }
 
     std::cout << "Logs from your program will appear here!\n";
@@ -129,12 +132,12 @@ int main(int argc, char **argv) {
     }
 
     struct sockaddr_in client_addr;
-    int client_addr_len = sizeof(client_addr);
+    socklen_t client_addr_len = sizeof(client_addr);
 
     std::cout << "Waiting for a client to connect...\n";
 
     while (true) {
-        int connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+        int connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
         if (connect_fd < 0) {
             std::cerr << "Accept failed\n";
             continue;
@@ -142,8 +145,10 @@ int main(int argc, char **argv) {
 
         pthread_t thread_id;
         thread_args *args = new thread_args{connect_fd, dir};
-        if (pthread_create(&thread_id, NULL, handle_client, (void*)args) < 0) {
+        if (pthread_create(&thread_id, NULL, handle_client, (void*)args) != 0) {
             std::cerr << "Could not create thread\n";
+            close(connect_fd);
+            delete args;
             continue;
         }
 
