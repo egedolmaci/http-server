@@ -47,7 +47,7 @@ void *handle_client(void *args_ptr) {
         std::clog << "File to retrieve: " << file_to_retrieve << "\n";
 
         // Construct the full path and open the file
-        std::string full_path = "/tmp/" + file_to_retrieve;
+        std::string full_path = dir + file_to_retrieve;
         std::clog << "Full path: " << full_path << "\n";
         std::ifstream file(full_path, std::ios::binary | std::ios::ate);
         
