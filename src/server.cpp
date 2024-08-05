@@ -84,7 +84,13 @@ void *handle_client(void *connect_fd_ptr) {
 int main(int argc, char **argv) {
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
-    
+  
+
+    std::string dir;
+    if (argc == 3 && strcmp("--directory", argv[1])) {
+            dir = argv[2];
+    }
+
     std::cout << "Logs from your program will appear here!\n";
 
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
