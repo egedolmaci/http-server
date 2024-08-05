@@ -24,16 +24,20 @@ void *handle_client(void *connect_fd_ptr) {
 
   std::string response = ""; 
   std::string msg(buf);
-
+  std::clog << msg << "\n";
   
   if (msg[4] == '/' && msg[5] == ' ') {
     response = "HTTP/1.1 200 OK\r\n\r\n";
   } else if (msg.find("files") != std::string::npos) {
+    // /tmp/foo HTTP/1
     size_t start = msg.find("/files/");
-    size_t end = msg.find(" ", start);
+    size_t end = msg.find(' ', start);
+    start += 7;
     std::string file_to_retrieve = msg.substr(start, end - start);
-
-    std::ifstream file_path(file_to_retrieve, std::ios::binary | std::ios::ate);
+    std::clog << file_to_retrieve.size() << "\n";
+    std::string full_path = "/tmp/" + file_to_retrieve;
+    std::ifstream file_path(full_path, std::ios::binary | std::ios::ate);
+    std::clog << full_path << "\n";
 
     if (!file_path.good()) {
       response = "HTTP/1.1 404 Not Found\r\n\r\n";
