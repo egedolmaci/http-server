@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     std::cerr << std::unitbuf;
   
 
-    if (argc == 3 && strcmp("--directory", argv[1])) {
+    if (argc == 3 && strcmp("--directory", argv[1]) == 0) {
             dir = argv[2];
     }
 
