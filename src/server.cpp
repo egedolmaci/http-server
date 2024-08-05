@@ -9,13 +9,12 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <mutex>
+#include <fstream>
 
 std::mutex client_mutex;
 
 void *handle_client(void *connect_fd_ptr) {
 
-
-  std::clog << "mutex locked by: " << pthread_self() << "\n";
   int connect_fd = *(int*)connect_fd_ptr;
   char buf[512];
 
@@ -29,6 +28,23 @@ void *handle_client(void *connect_fd_ptr) {
   
   if (msg[4] == '/' && msg[5] == ' ') {
     response = "HTTP/1.1 200 OK\r\n\r\n";
+  } else if (msg.find("files") != std::string::npos) {
+    size_t start = msg.find("/files/");
+    size_t end = msg.find(" ", start);
+    std::string file_to_retrieve = msg.substr(start, end - start);
+
+    std::ifstream file_path(file_to_retrieve, std::ios::binary | std::ios::ate);
+
+    if (!file_path.good()) {
+      response = "HTTP/1.1 404 Not Found\r\n\r\n";
+    } else {
+      long size = file_path.tellg();
+
+      file_path.seekg(0, std::ios::beg);
+      char* file_content;
+      file_path.read(file_content, size);
+      response = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + std::to_string(size) + "\r\n\r\n" + file_content; 
+    }
   } else if (msg.find("user-agent") != std::string::npos) {
     size_t start = msg.find("User-Agent: ");
     start += 12;
