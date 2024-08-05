@@ -123,6 +123,7 @@ int main(int argc, char **argv) {
       continue;
     }
 
+    std::clog << thread_id << "\n";
     pthread_detach(thread_id);
 
   }
