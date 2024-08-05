@@ -1,4 +1,5 @@
 #include <iostream>
+#include <pthread.h>
 #include <cstdlib>
 #include <string>
 #include <cstring>
@@ -7,6 +8,44 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+
+void *handle_client(void *connect_fd_ptr) {
+  int connect_fd = *(int*)connect_fd_ptr;
+  char buf[512];
+
+  if (recv(connect_fd, buf, sizeof buf, 0) < 0) {
+    std::cerr << "recieving failed\n";
+  }
+
+  std::string response = ""; 
+  std::string msg(buf);
+
+  
+  if (msg[4] == '/' && msg[5] == ' ') {
+    response = "HTTP/1.1 200 OK\r\n\r\n";
+  } else if (msg.find("user-agent") != std::string::npos) {
+    size_t start = msg.find("User-Agent: ");
+    start += 12;
+    size_t end = msg.find("\r\n", start);
+    std::clog << start << "\n" << end << "\n";
+    std::string content_body = msg.substr(start, end - start);
+    response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
+
+  } else if (msg.find("/echo/") != std::string::npos) {
+    size_t start = msg.find('/', 5);
+    size_t end = msg.find(' ', start);
+    std::string content_body = msg.substr(start+1,end - start - 1);
+    response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
+  } else {
+    response = "HTTP/1.1 404 Not Found\r\n\r\n";
+  }
+
+
+  send(connect_fd, response.c_str(), response.size(), 0);
+  close(connect_fd);
+  delete (int*)connect_fd_ptr;
+}
+  
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -57,40 +96,24 @@ int main(int argc, char **argv) {
   connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
   std::cout << "Client connected\n";
  
-  char buf[512];
-  if (recv(connect_fd, buf, sizeof buf, 0) < 0) {
-    std::cerr << "recieving failed\n";
-    return 1;
+  while (true) {
+
+    if ((connect_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len)) < 0) {
+      std::cerr << "Accept failed\n";
+      continue;
+    } 
+
+    pthread_t thread_id;
+    int *connect_fd_ptr = new int;
+    *connect_fd_ptr = connect_fd;
+    if (pthread_create(&thread_id, NULL, handle_client, (void*)connect_fd_ptr) < 0) {
+      std::cerr << "Could not create thread\n";
+      continue;
+    }
+
+    pthread_detach(thread_id);
+
   }
-
-  std::string response = ""; 
-  std::string msg(buf);
-
-  
-  if (msg[4] == '/' && msg[5] == ' ') {
-    response = "HTTP/1.1 200 OK\r\n\r\n";
-  } else if (msg.find("user-agent") != std::string::npos) {
-    size_t start = msg.find("User-Agent: ");
-    start += 12;
-    size_t end = msg.find("\r\n", start);
-    std::clog << start << "\n" << end << "\n";
-    std::string content_body = msg.substr(start, end - start);
-    response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
-
-  } else if (msg.find("/echo/") != std::string::npos) {
-    size_t start = msg.find('/', 5);
-    size_t end = msg.find(' ', start);
-    std::string content_body = msg.substr(start+1,end - start - 1);
-    response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + std::to_string(content_body.length()) + "\r\n\r\n" + content_body;
-  } else {
-    response = "HTTP/1.1 404 Not Found\r\n\r\n";
-  }
-
-
-  std::clog << msg << "\n";
-  send(connect_fd, response.c_str(), response.size(), 0);
-  close(connect_fd);
-  close(server_fd);
 
   return 0;
 }
