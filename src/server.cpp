@@ -8,8 +8,13 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <mutex>
+
+std::mutex client_mutex;
 
 void *handle_client(void *connect_fd_ptr) {
+
+  client_mutex.lock();
   int connect_fd = *(int*)connect_fd_ptr;
   char buf[512];
 
@@ -40,7 +45,7 @@ void *handle_client(void *connect_fd_ptr) {
     response = "HTTP/1.1 404 Not Found\r\n\r\n";
   }
 
-
+  client_mutex.unlock();
   send(connect_fd, response.c_str(), response.size(), 0);
   close(connect_fd);
   delete (int*)connect_fd_ptr;
