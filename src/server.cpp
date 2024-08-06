@@ -57,7 +57,21 @@ void *handle_client(void *args_ptr) {
         std::clog << "Full path: " << full_path << "\n";
         std::ifstream file(full_path, std::ios::binary | std::ios::ate);
 
-        if (file.is_open()) {
+        if (msg.find("POST") != std::string::npos) {
+            size_t start = msg.find("\r\n\r\n");
+            size_t end = msg.find("\0");
+            start += 4;
+            std::string body_request = msg.substr(start, end - start);
+            std::clog << "Body Request: " << body_request
+                      << "\nBody Request size: "
+                      << std::to_string(body_request.size()) << "\n";
+            
+            std::ofstream outFile;
+            outFile.open(dir + file_to_retrieve);
+            outFile << body_request;
+            response = "HTTP1.1/ 201 Created\r\n\r\n";
+
+        } else if (!file.is_open()) {
             response = "HTTP/1.1 404 Not Found\r\n\r\n";
         } else if (msg.find("GET") != std::string::npos) {
             // Get file size
@@ -73,14 +87,6 @@ void *handle_client(void *args_ptr) {
                 "HTTP/1.1 200 OK\r\nContent-Type: "
                 "application/octet-stream\r\nContent-Length: " +
                 std::to_string(size) + "\r\n\r\n" + file_content;
-        } else if (msg.find("POST") != std::string::npos) {
-            size_t start = msg.find("\\r\\n\\r\\n");
-            size_t end = msg.find("\0");
-
-            start += 8;
-            std::string body_request = msg.substr(start, end - start);
-            std::clog << "Body Request: " << body_request << std::to_string(body_request.size())
-                      << "\n";
         }
 
     } else if (msg.find("user-agent") != std::string::npos) {
