@@ -1,6 +1,8 @@
 # Prerequisites
 *.d
 
+README.md
+your_program.sh
 # Compiled Object files
 *.slo
 *.lo
@@ -47,3 +49,5 @@ _deps
 
 build/
 vcpkg_installed
+
+codecrafter.yml
