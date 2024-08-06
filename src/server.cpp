@@ -69,7 +69,7 @@ void *handle_client(void *args_ptr) {
             std::ofstream outFile;
             outFile.open(dir + file_to_retrieve);
             outFile << body_request;
-            response = "HTTP1.1/ 201 Created\r\n\r\n";
+            response = "HTTP/1.1 201 Created\r\n\r\n";
 
         } else if (!file.is_open()) {
             response = "HTTP/1.1 404 Not Found\r\n\r\n";
