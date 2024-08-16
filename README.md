@@ -13,6 +13,7 @@ This project is a simple multithreaded HTTP server built using C++. The server i
 
 ## Folder Structure
 
+```bash
 ├── CMakeLists.txt
 ├── README.md
 ├── build/
@@ -20,6 +21,7 @@ This project is a simple multithreaded HTTP server built using C++. The server i
 ├── vcpkg-configuration.json
 ├── vcpkg.json
 └── your_program.sh
+```
 
 - CMakeLists.txt: Contains the CMake configuration for building the project.
 - README.md: This file, which describes the project.
